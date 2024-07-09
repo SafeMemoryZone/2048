@@ -4,18 +4,19 @@
   --color-grey: #8697C4;
   --color-light-grey: #ADBBDA;
   --color-white: #EDE8F5;
+
+  --button-width: 10.5rem;
+  --button-height: 4.5rem;
+  --navbar-height: 15vh
 }
 
 body {
   margin: 0;
-}
-
-html {
   background-color: var(--color-light-blue);
   color: var(--color-white);
   font-family: sans-serif;
-  font-size: 1.5rem;
   font-weight: bold;
+  user-select: none;
 }
 
 ol > * {
@@ -28,26 +29,58 @@ ul > * {
 
 #navbar {
   display: flex;
-  justify-content: space-evenly;
+  justify-content: space-between;
   align-items: center;
-  height: 17vh;
+  height: var(--navbar-height);
   background-color: #526db3;
+  padding: 0 2rem;
+}
+
+.navbar-text {
+  padding: 1.5rem;
+  border-radius: 5px;
+  border: 2px var(--color-light-grey) solid;
+  background-color: var(--color-grey);
+  font-size: 1.5rem;
 }
 
 .navbar-button {
-  width: 10.5rem;
-  height: 4.5rem;
+  width: var(--button-width);
+  height: var(--button-height);
   background-color: var(--color-grey);
   color: var(--color-white);
   border: 2px var(--color-light-grey) solid;
   border-radius: 5px;
   font-size: 1.5rem;
   font-weight: bold;
-  transition: width 0.1s ease-in, height 0.1s ease-in, background-color 0.1s ease-in;
+  transition: width 0.1s ease-in, height 0.1s ease-in, background-color 0.1s ease-in, box-shadow 0.1s ease-in;
 }
 
 .navbar-button:hover {
-  width: calc(10.5rem * 1.1);
-  height: calc(4.5rem * 1.1);
+  width: calc(var(--button-width) * 1.1);
+  height: calc(var(--button-height) * 1.1);
   background-color: darkseagreen;
+  box-shadow: 5px 5px 5px rgba(255, 255, 255, 0.1);
+}
+
+main {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: calc(100vh - var(--navbar-height));
+}
+
+#board {
+  border-collapse: collapse;
+  width: 60vmin;
+  height: 60vmin;
+}
+
+#board td {
+  border: 2px solid var(--color-light-grey);
+  width: 25%;
+  height: 25%;
+  font-size: 1.5rem;
+  background-color: var(--color-grey);
+  color: var(--color-white);
 }
