@@ -1,7 +1,7 @@
 #include "board.hpp"
 #include <cassert>
 
-bool Board::IsTerminalState() {
+bool Board::IsTerminalState() const {
   static const int neighbour_offs[][2] = {
     {0, -1},
     {-1, 0},
@@ -113,8 +113,7 @@ void Board::MakeMove(int direction) {
   }
 }
 
-std::vector<int> Board::GetLegalMoves() {
-  // TODO: Optimize
+std::vector<int> Board::GetLegalMoves() const {
   std::vector<int> legal_moves;
 
   for(int direction = 0; direction < 4; direction++) {
@@ -127,6 +126,6 @@ std::vector<int> Board::GetLegalMoves() {
   return legal_moves;
 }
 
-Board Board::MakeCopy() {
+Board Board::MakeCopy() const {
   return *this;
 }

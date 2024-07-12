@@ -9,10 +9,10 @@
 #define DIRECTION_RIGHT 3
 
 struct Board {
-  bool IsTerminalState();
+  bool IsTerminalState() const;
   void MakeMove(int direction);
-  std::vector<int> GetLegalMoves();
-  Board MakeCopy();
+  std::vector<int> GetLegalMoves() const;
+  Board MakeCopy() const;
 
   std::array<std::array<uint64_t, 4>, 4> board;
 };
