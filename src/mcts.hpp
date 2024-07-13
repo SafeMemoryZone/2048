@@ -9,6 +9,7 @@ class Mcts {
 public:
   explicit Mcts(const Board *initial_board);
   int CalculateBestAction(size_t iter_count);
+  void SearchBoard(const Board *board);
 
 private:
   Node *curr_node; 
@@ -23,5 +24,7 @@ private:
   double Simulate(const Node *node) const;
   void Backpropagate(Node *node, const double eval) const;
   double GetUctScore(const Node *node) const;
+  void SearchBoardAndCleanupTree(const Board *board, Node *node, int curr_level);
+  void CleanupTree(Node *node);
 };
 #endif // MCTS_HPP
