@@ -5,7 +5,6 @@
 
 struct Node {
   double score;
-  double weight;
   uint64_t visit_count;
   uint64_t child_count;
   Node *children[32];

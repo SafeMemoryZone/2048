@@ -13,12 +13,12 @@ int main(int argc, char **argv) {
   board.board.at(0).at(0) = 2;
   board.board.at(0).at(1) = 2;
 
-  Mcts mcts(&board);
+  Mcts mcts(board);
   std::random_device rd;
   std::mt19937 gen(rd());
 
-  for(;;) {
-    board.MakeMove(mcts.CalculateBestAction(1000));
+  while(!board.IsTerminalState()) {
+    board.MakeMove(mcts.CalculateBestAction(10000));
     std::vector<std::pair<int, int>> empty_tiles;
 
     for(int i = 0; i < 4; i++) {
@@ -36,7 +36,7 @@ int main(int argc, char **argv) {
 
     board.board.at(i_idx).at(j_idx) = c;
 
-    mcts.SearchBoard(&board);
+    mcts.FindNodeByBoard(board);
 
     for(const auto &row: board.board) {
       for(const auto cell: row) {
@@ -44,5 +44,6 @@ int main(int argc, char **argv) {
       }
       std::cout << '\n';
     }
+    std::cout << "\n\n";
   }
 }

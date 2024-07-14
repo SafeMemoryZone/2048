@@ -7,24 +7,23 @@
 
 class Mcts {
 public:
-  explicit Mcts(const Board *initial_board);
+  explicit Mcts(const Board &board);
   int CalculateBestAction(size_t iter_count);
-  void SearchBoard(const Board *board);
+  void FindNodeByBoard(const Board &board);
 
 private:
-  Node *curr_node; 
+  Node *tree_root; 
   std::vector<Node *> free_nodes;
   std::deque<Node> arena;
 
-  Node *AllocateNode();
-  Node *GetBestUctChild(const Node *node) const;
-  Node *SelectBestLeafNode(Node *node) const;
-  Node *Expand(Node *node);
-  bool IsFullyExpanded(const Node *node) const;
+  Node *AllocNode();
+  Node *GetBestUctChild(const Node *node);
+  Node *SelectBestLeafNode(Node *node);
+  void Expand(Node *node);
   double Simulate(const Node *node) const;
   void Backpropagate(Node *node, const double eval) const;
-  double GetUctScore(const Node *node) const;
-  void SearchBoardAndCleanupTree(const Board *board, Node *node, int curr_level);
-  void CleanupTree(Node *node);
+  double GetUctScore(const Node *node);
+  bool FindNodeWithCleanup(const Board &board, Node *node, int curr_level);
+  void CleanupTreeFromRoot(Node *node);
 };
 #endif // MCTS_HPP
