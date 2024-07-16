@@ -12,13 +12,14 @@ int main(int argc, char **argv) {
 
   board.board.at(0).at(0) = 2;
   board.board.at(0).at(1) = 2;
+  board.merge_val = 0;
 
   Mcts mcts(board);
   std::random_device rd;
   std::mt19937 gen(rd());
 
   while(!board.IsTerminalState()) {
-    board.MakeMove(mcts.CalculateBestAction(10000));
+    board.MakeMove(mcts.CalculateBestAction(16000));
     std::vector<std::pair<int, int>> empty_tiles;
 
     for(int i = 0; i < 4; i++) {
@@ -38,6 +39,7 @@ int main(int argc, char **argv) {
 
     mcts.FindNodeByBoard(board);
 
+    std::cout << "Val: " << board.merge_val << '\n';
     for(const auto &row: board.board) {
       for(const auto cell: row) {
         std::cout << cell << ' ';

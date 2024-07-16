@@ -2,26 +2,23 @@
 #include <array>
 #include <cassert>
 #include <cfloat>
-#include <cstdint>
-#include <numeric>
 #include <random>
 #include <vector>
 
-#define MAX_SIM_LEN 1000
-
-// TODO: use proper score, better flattening than sigmoid
+static void InitNewNode(Node *node, Node *parent, int action, const Board &board, bool is_ai_turn) {
+  node->score = 0;
+  node->visit_count = 0;
+  node->child_count = 0;
+  node->parent = parent;
+  node->action = action;
+  node->board = board;
+  node->is_ai_turn = is_ai_turn;
+}
 
 Mcts::Mcts(const Board &board) {
-  Node *n = this->AllocNode();
-  n->score = 0;
-  n->visit_count = 0;
-  n->child_count = 0;
-  n->parent = nullptr;
-  n->action = -1;
-  n->board = board;
-  n->is_ai_turn = true;
-
-  this->tree_root = n;
+  this->tree_root = this->AllocNode();
+  InitNewNode(this->tree_root, nullptr, -1, board, true);
+  this->divisor = 1024;
 }
 
 Node *Mcts::AllocNode() {
@@ -40,18 +37,22 @@ Node *Mcts::AllocNode() {
 int Mcts::CalculateBestAction(size_t iter_count) {
   std::random_device rd;
   std::mt19937 gen(rd());
+  bool is_soft_play = true;
 
   for (size_t i = 0; i < iter_count; i++) {
     Node *leaf = this->SelectBestLeafNode(this->tree_root);
-    this->Expand(leaf);
+
+    if(!leaf->board.IsTerminalState())
+      this->Expand(leaf);
 
     if(leaf->child_count > 0) {
       std::uniform_int_distribution<> dis(0, leaf->child_count - 1);
       leaf = leaf->children[dis(gen)];
     }
 
-    double eval = this->Simulate(leaf);
+    double eval = this->Simulate(leaf, is_soft_play);
     this->Backpropagate(leaf, eval);
+    is_soft_play = !is_soft_play;
   }
 
   int best_action = -1;
@@ -104,7 +105,7 @@ Node *Mcts::SelectBestLeafNode(Node *node) {
     }
 
     std::uniform_int_distribution<> child_dis(0, possible_children.size() - 1);
-    
+
     return this->SelectBestLeafNode(possible_children.at(child_dis(gen)));
   }
 
@@ -115,17 +116,10 @@ void Mcts::Expand(Node *node) {
   if (node->is_ai_turn) {
     std::vector<int> legal_actions = node->board.GetLegalMoves();
 
-    for (int action : legal_actions) {
+    for (int action: legal_actions) {
       Node *child_node = this->AllocNode();
-      child_node->score = 0;
-      child_node->visit_count = 0;
-      child_node->child_count = 0;
-      child_node->parent = node;
-      child_node->action = action;
-      child_node->board = node->board.MakeCopy();
+      InitNewNode(child_node, node, action, node->board, false);
       child_node->board.MakeMove(action);
-      child_node->is_ai_turn = false;
-
       node->children[node->child_count++] = child_node;
     }
 
@@ -136,21 +130,15 @@ void Mcts::Expand(Node *node) {
     for (int j = 0; j < 4; j++) {
       if (!node->board.board.at(i).at(j)) {
         Node *child_node1 = this->AllocNode();
-        child_node1->score = 0;
-        child_node1->visit_count = 0;
-        child_node1->child_count = 0;
-        child_node1->parent = node;
-        child_node1->action = 2;
-        child_node1->board = node->board.MakeCopy();
+        InitNewNode(child_node1, node, 2, node->board, true);
         child_node1->board.board.at(i).at(j) = 2;
-        child_node1->is_ai_turn = true;
 
         Node *child_node2 = this->AllocNode();
         *child_node2 = *child_node1;
-        child_node1->action = 4;
-        child_node1->board.board.at(i).at(j) = 4;
+        child_node2->action = 4;
+        child_node2->board.board.at(i).at(j) = 4;
 
-        assert(node->child_count < 31);
+        assert(node->child_count <= 30);
         node->children[node->child_count++] = child_node1;
         node->children[node->child_count++] = child_node2;
       }
@@ -158,15 +146,14 @@ void Mcts::Expand(Node *node) {
   }
 }
 
-double Mcts::Simulate(const Node *node) const {
+double Mcts::Simulate(const Node *node, bool is_soft_play) const {
   static std::random_device rd;
   static std::mt19937 gen(rd());
 
-  Board board = node->board.MakeCopy();
+  Board board = node->board;
   bool is_environment_turn = !node->is_ai_turn;
 
-  int sim_i = 0;
-  while (!board.IsTerminalState() && sim_i < MAX_SIM_LEN) {
+  while (!board.IsTerminalState()) {
     if (is_environment_turn) {
       std::vector<std::pair<int, int>> empty_tiles;
       for (int i = 0; i < 4; i++) {
@@ -188,24 +175,40 @@ double Mcts::Simulate(const Node *node) const {
         board.board.at(i_idx).at(j_idx) = 4;
       }
     } else {
-      std::vector<int> legal_moves = board.GetLegalMoves();
-      std::uniform_int_distribution<> dis(0, legal_moves.size() - 1);
+      if(is_soft_play) {
+        std::vector<int> legal_moves = board.GetLegalMoves();
+        std::uniform_int_distribution<> dis(0, legal_moves.size() - 1);
 
-      board.MakeMove(legal_moves.at(dis(gen)));
+        board.MakeMove(legal_moves.at(dis(gen)));
+      }
+      else {
+        int best_move = -1;
+        double best_eval = -DBL_MAX;
+
+        for(int move = 0; move < 4; move++) {
+          Board test = board; 
+          test.MakeMove(move);
+
+          if(board.board == test.board) 
+            continue;
+
+          double val = test.GetBoardSum() / test.CountOccupiedTiles();
+
+          if(val > best_eval) {
+            best_eval = val;
+            best_move = move;
+          }
+        }
+
+        assert(best_move != -1);
+        board.MakeMove(best_move);
+      }
     }
 
     is_environment_turn = !is_environment_turn;
-    sim_i++;
   }
 
-  // TODO: flatten score
-  double sum = 0;
-
-  for (const auto &row : board.board) {
-    sum += std::accumulate(row.begin(), row.end(), 0.0);
-  }
-
-  return sum;
+  return board.GetBoardSum();
 }
 
 void Mcts::Backpropagate(Node *node, double eval) const {
@@ -225,7 +228,16 @@ double Mcts::GetUctScore(const Node *node) {
     return DBL_MAX;
 
   constexpr double c = 1.44;
-  double exploitation = (double)node->score / node->visit_count;
+
+  double exploitation = node->score / node->visit_count / this->divisor;
+
+  if(exploitation > 1)
+    this->divisor *= 2;
+
+  exploitation = node->score / node->visit_count / this->divisor;
+
+  assert(exploitation <= 1);
+
   double exploration = c * sqrt(log(parent->visit_count) / node->visit_count);
 
   return exploration + exploitation;
@@ -233,17 +245,10 @@ double Mcts::GetUctScore(const Node *node) {
 
 void Mcts::FindNodeByBoard(const Board &board) {
   if(!this->FindNodeWithCleanup(board, this->tree_root, 0)) {
-    this->CleanupTreeFromRoot(this->tree_root);
-    Node *n = this->AllocNode();
-    n->score = 0;
-    n->visit_count = 0;
-    n->child_count = 0;
-    n->parent = nullptr;
-    n->action = -1;
-    n->board = board;
-    n->is_ai_turn = true;
 
-    this->tree_root = n;
+    this->CleanupTreeFromRoot(this->tree_root);
+    this->tree_root = this->AllocNode();
+    InitNewNode(this->tree_root, nullptr, -1, board, true);
   }
 }
 
@@ -271,7 +276,7 @@ bool Mcts::FindNodeWithCleanup(const Board &board, Node *node, int curr_level) {
 }
 
 void Mcts::CleanupTreeFromRoot(Node *node) {
-  if (!node) return;
+  assert(node != nullptr);
 
   for (int i = 0; i < node->child_count; i++) {
     this->CleanupTreeFromRoot(node->children[i]);

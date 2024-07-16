@@ -1,5 +1,6 @@
 #include "board.hpp"
 #include <cassert>
+#include <numeric>
 
 bool Board::IsTerminalState() const {
   static const int neighbour_offs[][2] = {
@@ -54,6 +55,7 @@ void Board::MakeMove(int direction) {
           if (k > 0 && CanCombineTiles(k, j, k-1, j)) {
             this->board.at(k-1).at(j) *= 2;
             this->board.at(k).at(j) = 0;
+            this->merge_val += this->board.at(k-1).at(j);
           }
         }
       }
@@ -71,6 +73,7 @@ void Board::MakeMove(int direction) {
           if (k < 3 && CanCombineTiles(k, j, k+1, j)) {
             this->board.at(k+1).at(j) *= 2;
             this->board.at(k).at(j) = 0;
+            this->merge_val += this->board.at(k+1).at(j);
           }
         }
       }
@@ -88,6 +91,7 @@ void Board::MakeMove(int direction) {
           if (k > 0 && CanCombineTiles(i, k, i, k-1)) {
             this->board.at(i).at(k-1) *= 2;
             this->board.at(i).at(k) = 0;
+            this->merge_val += this->board.at(i).at(k-1);
           }
         }
       }
@@ -105,6 +109,7 @@ void Board::MakeMove(int direction) {
           if (k < 3 && CanCombineTiles(i, k, i, k+1)) {
             this->board.at(i).at(k+1) *= 2;
             this->board.at(i).at(k) = 0;
+            this->merge_val += this->board.at(i).at(k+1);
           }
         }
       }
@@ -117,7 +122,7 @@ std::vector<int> Board::GetLegalMoves() const {
   std::vector<int> legal_moves;
 
   for(int direction = 0; direction < 4; direction++) {
-    Board test = this->MakeCopy();
+    Board test = *this;
     test.MakeMove(direction);
     if(test.board != this->board)
       legal_moves.emplace_back(direction);
@@ -126,6 +131,22 @@ std::vector<int> Board::GetLegalMoves() const {
   return legal_moves;
 }
 
-Board Board::MakeCopy() const {
-  return *this;
+int Board::CountOccupiedTiles() const {
+  int count = 0;
+
+  for(const auto &row: this->board)  {
+    count += std::count_if(row.begin(), row.end(), [](auto x) {return x;} );
+  }
+
+  return count;
+}
+
+double Board::GetBoardSum() const {
+  double accum = 0;
+
+  for(const auto &row: this->board) {
+    accum += std::accumulate(row.begin(), row.end(), 0.0);
+  }
+
+  return accum;
 }
