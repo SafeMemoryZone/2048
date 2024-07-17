@@ -2,6 +2,7 @@
 #include <iostream>
 #include <vector>
 #include <random>
+#include <sys/signal.h>
 
 int main(int argc, char **argv) {
   Board board;
@@ -19,7 +20,7 @@ int main(int argc, char **argv) {
   std::mt19937 gen(rd());
 
   while(!board.IsTerminalState()) {
-    board.MakeMove(mcts.CalculateBestAction(16000));
+    board.MakeAction(mcts.CalculateBestAction(100));
     std::vector<std::pair<int, int>> empty_tiles;
 
     for(int i = 0; i < 4; i++) {

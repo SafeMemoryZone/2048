@@ -33,7 +33,7 @@ bool Board::IsTerminalState() const {
   return true;
 }
 
-void Board::MakeMove(int direction) {
+void Board::MakeAction(int action) {
   auto CanCombineTiles = [this](int i1, int j1, int i2, int j2) -> bool {
     if (i1 < 0 || i1 > 3 || j1 < 0 || j1 > 3 || 
         i2 < 0 || i2 > 3 || j2 < 0 || j2 > 3) return false;
@@ -41,7 +41,7 @@ void Board::MakeMove(int direction) {
     return this->board.at(i1).at(j1) != 0 && this->board.at(i1).at(j1) == this->board.at(i2).at(j2);
   };
 
-  switch (direction) {
+  switch (action) {
     case DIRECTION_UP:
       for (int j = 0; j < 4; j++) {
         for (int i = 1; i < 4; i++) {
@@ -118,14 +118,14 @@ void Board::MakeMove(int direction) {
   }
 }
 
-std::vector<int> Board::GetLegalMoves() const {
-  std::vector<int> legal_moves;
+std::deque<uint8_t> Board::GetLegalActions() const {
+  std::deque<uint8_t> legal_moves;
 
-  for(int direction = 0; direction < 4; direction++) {
+  for(uint8_t action = 0; action < 4; action++) {
     Board test = *this;
-    test.MakeMove(direction);
+    test.MakeAction(action);
     if(test.board != this->board)
-      legal_moves.emplace_back(direction);
+      legal_moves.push_back(action);
   }
 
   return legal_moves;

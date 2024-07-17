@@ -8,7 +8,7 @@
 class Mcts {
 public:
   explicit Mcts(const Board &board);
-  int CalculateBestAction(size_t iter_count);
+  uint8_t CalculateBestAction(uint64_t iter_count);
   void FindNodeByBoard(const Board &board);
 
 private:
@@ -20,8 +20,9 @@ private:
   Node *AllocNode();
   Node *GetBestUctChild(const Node *node);
   Node *SelectBestLeafNode(Node *node);
-  void Expand(Node *node);
-  double Simulate(const Node *node, bool is_soft_play) const;
+  Node *Expand(Node *node);
+  bool IsLeafNode(const Node *node);
+  double Simulate(const Node *node) const;
   void Backpropagate(Node *node, double eval) const;
   double GetUctScore(const Node *node);
   bool FindNodeWithCleanup(const Board &board, Node *node, int curr_level);

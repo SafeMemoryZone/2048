@@ -2,6 +2,7 @@
 #define BOARD_HPP
 #include <array>
 #include <cstdint>
+#include <deque>
 #include <vector>
 
 #define DIRECTION_UP 0
@@ -11,12 +12,12 @@
 
 struct Board {
   bool IsTerminalState() const;
-  void MakeMove(int direction);
-  std::vector<int> GetLegalMoves() const;
+  void MakeAction(int action);
+  std::deque<uint8_t> GetLegalActions() const;
   int CountOccupiedTiles() const;
   double GetBoardSum() const;
 
   uint64_t merge_val;
-  std::array<std::array<uint64_t, 4>, 4> board;
+  std::array<std::array<uint32_t, 4>, 4> board;
 };
 #endif // BOARD_HPP 
