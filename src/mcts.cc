@@ -5,7 +5,6 @@
 #include <cstdint>
 #include <random>
 #include <vector>
-#include <utility>
 
 static void InitNewNode(Node *node, Node *parent, uint8_t action, const Board &board, bool is_ai_turn) {
   node->score = 0;
@@ -16,28 +15,16 @@ static void InitNewNode(Node *node, Node *parent, uint8_t action, const Board &b
   node->is_ai_turn = is_ai_turn;
   node->should_soft_play = false;
   node->is_expanded = false;
-  node->unexpanded_actions.clear();
+  node->unexpanded_actions.Clear();
   node->children.clear();
 }
 
 Mcts::Mcts(const Board &board) {
-  this->tree_root = this->AllocNode();
+  this->tree_root = new Node;
   InitNewNode(this->tree_root, nullptr, UINT8_MAX, board, true);
   this->divisor = 1024;
 }
 
-Node *Mcts::AllocNode() {
-  if (!this->free_nodes.size()) {
-    this->arena.push_back(Node{});
-    return &this->arena.back();
-  }
-
-  Node *last = this->free_nodes.back();
-  this->free_nodes.pop_back();
-
-  assert(last != nullptr);
-  return last;
-}
 
 uint8_t Mcts::CalculateBestAction(uint64_t iter_count) {
   std::random_device rd;
@@ -111,12 +98,15 @@ Node *Mcts::SelectBestLeafNode(Node *node) {
 }
 
 bool Mcts::IsLeafNode(const Node *node) {
-  if(node->board.IsTerminalState())
+  // Node was expanded, doesn't have unexpanded actions nor children - terminal node
+  if(node->is_expanded && !node->unexpanded_actions.Size() && !node->children.size())
     return true;
 
-  if(node->is_expanded && !node->unexpanded_actions.size())
+  // Node was expanded, doesn't have any unexpanded actions
+  if(node->is_expanded && !node->unexpanded_actions.Size())
     return false;
 
+  // Node wasn't expaneded or still has unexpanded actions
   return true;
 }
 
@@ -126,16 +116,13 @@ Node *Mcts::Expand(Node *node) {
 
   if (node->is_ai_turn) {
     if(!node->is_expanded) {
-      node->unexpanded_actions = std::move(node->board.GetLegalActions());
+      node->unexpanded_actions = node->board.GetLegalActions();
       node->is_expanded = true;
     }
 
-    std::uniform_int_distribution<> dis(0, node->unexpanded_actions.size() - 1);
-    int i = dis(gen);
-    uint8_t action = node->unexpanded_actions.at(i);
-    node->unexpanded_actions.erase(node->unexpanded_actions.begin() + i);
+    uint8_t action = node->unexpanded_actions.GetRandomItemAndRemove();
     
-    Node *n = this->AllocNode();
+    Node *n = new Node;
     InitNewNode(n, node, action, node->board, false);
     n->board.MakeAction(action);
 
@@ -162,24 +149,19 @@ Node *Mcts::Expand(Node *node) {
 
         uint8_t action1 = (2 << 4) | (j << 2) | i;
         uint8_t action2 = (4 << 4) | (j << 2) | i;
-        node->unexpanded_actions.push_back(action1);
-        node->unexpanded_actions.push_back(action2);
+        node->unexpanded_actions.Add(action1);
+        node->unexpanded_actions.Add(action2);
       }
     }
     node->is_expanded = true;
   }
 
-  std::uniform_int_distribution<> dis(0, node->unexpanded_actions.size() - 1);
-
-  int i = dis(gen);
-  uint8_t a = node->unexpanded_actions.at(i);
-  node->unexpanded_actions.erase(node->unexpanded_actions.begin() + i);
-
+  uint8_t a = node->unexpanded_actions.GetRandomItemAndRemove();
   uint8_t i_idx = a & 0b11;
   uint8_t j_idx = (a & 0b1100) >> 2;
   uint8_t action = (a & 0b1110000) >> 4;
 
-  Node *n = this->AllocNode();
+  Node *n = new Node;
   InitNewNode(n, node, action, node->board, true);
   n->board.board.at(i_idx).at(j_idx) = action;
   node->children.emplace_back(n);
@@ -217,9 +199,8 @@ double Mcts::Simulate(const Node *node) const {
       }
     } else {
       if(node->should_soft_play) {
-        std::deque<uint8_t> legal_actions = board.GetLegalActions();
-        std::uniform_int_distribution<> dis(0, legal_actions.size() - 1);
-        board.MakeAction(legal_actions.at(dis(gen)));
+        RandomAccessArr<uint8_t> legal_actions = board.GetLegalActions();
+        board.MakeAction(legal_actions.GetRandomItemAndRemove());
       }
       else {
         uint8_t best_action = UINT8_MAX;
@@ -286,7 +267,7 @@ void Mcts::FindNodeByBoard(const Board &board) {
     assert(false);
 
     this->CleanupTreeFromRoot(this->tree_root);
-    this->tree_root = this->AllocNode();
+    this->tree_root = new Node;
     InitNewNode(this->tree_root, nullptr, UINT8_MAX, board, true);
   }
 }
@@ -320,5 +301,5 @@ void Mcts::CleanupTreeFromRoot(Node *node) {
     this->CleanupTreeFromRoot(child);
   }
 
-  this->free_nodes.emplace_back(node);
+  delete node;
 }

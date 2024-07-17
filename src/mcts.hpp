@@ -2,8 +2,6 @@
 #define MCTS_HPP
 #include "board.hpp"
 #include "node.hpp"
-#include <deque>
-#include <vector>
 
 class Mcts {
 public:
@@ -13,11 +11,8 @@ public:
 
 private:
   Node *tree_root; 
-  std::vector<Node *> free_nodes;
-  std::deque<Node> arena;
   double divisor;
 
-  Node *AllocNode();
   Node *GetBestUctChild(const Node *node);
   Node *SelectBestLeafNode(Node *node);
   Node *Expand(Node *node);

@@ -1,9 +1,8 @@
 #ifndef BOARD_HPP
 #define BOARD_HPP
+#include "random_access_arr.hpp"
 #include <array>
 #include <cstdint>
-#include <deque>
-#include <vector>
 
 #define DIRECTION_UP 0
 #define DIRECTION_DOWN 1
@@ -13,7 +12,7 @@
 struct Board {
   bool IsTerminalState() const;
   void MakeAction(int action);
-  std::deque<uint8_t> GetLegalActions() const;
+  RandomAccessArr<uint8_t> GetLegalActions() const;
   int CountOccupiedTiles() const;
   double GetBoardSum() const;
 

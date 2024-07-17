@@ -20,7 +20,7 @@ int main(int argc, char **argv) {
   std::mt19937 gen(rd());
 
   while(!board.IsTerminalState()) {
-    board.MakeAction(mcts.CalculateBestAction(100));
+    board.MakeAction(mcts.CalculateBestAction(16000));
     std::vector<std::pair<int, int>> empty_tiles;
 
     for(int i = 0; i < 4; i++) {

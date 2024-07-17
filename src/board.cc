@@ -1,4 +1,5 @@
 #include "board.hpp"
+#include "random_access_arr.hpp"
 #include <cassert>
 #include <numeric>
 
@@ -118,14 +119,14 @@ void Board::MakeAction(int action) {
   }
 }
 
-std::deque<uint8_t> Board::GetLegalActions() const {
-  std::deque<uint8_t> legal_moves;
+RandomAccessArr<uint8_t> Board::GetLegalActions() const {
+  RandomAccessArr<uint8_t> legal_moves;
 
   for(uint8_t action = 0; action < 4; action++) {
     Board test = *this;
     test.MakeAction(action);
     if(test.board != this->board)
-      legal_moves.push_back(action);
+      legal_moves.Add(action);
   }
 
   return legal_moves;

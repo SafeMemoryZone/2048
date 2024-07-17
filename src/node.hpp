@@ -2,7 +2,7 @@
 #define NODE_HPP
 #include "board.hpp"
 #include <cstdint>
-#include <deque>
+#include "random_access_arr.hpp"
 
 struct Node {
   double score;
@@ -12,7 +12,7 @@ struct Node {
   bool is_ai_turn : 1;
   bool should_soft_play : 1;
   bool is_expanded : 1;
-  std::deque<uint8_t> unexpanded_actions;
+  RandomAccessArr<uint8_t> unexpanded_actions;
   std::vector<Node*> children;
   Board board;
 };
