@@ -1,62 +1,37 @@
-#ifndef RANDOM_ACCESS_ARR
-#define RANDOM_ACCESS_ARR
+#ifndef RANDOM_ACCESS_ARRAY
+#define RANDOM_ACCESS_ARRAY
 #include <cstdint>
 #include <cstdlib>
 #include <random>
 #include <cassert>
 
 template<typename T>
-class RandomAccessArr {
+class RandomAccessArray {
   public:
-    RandomAccessArr() : size(0), capacity(0), items(nullptr) {}
+    RandomAccessArray() : size(0), capacity(0), items(nullptr) {}
 
-    ~RandomAccessArr() {
+    ~RandomAccessArray() {
       if (this->items) 
         free(this->items);
     }
 
-    RandomAccessArr(const RandomAccessArr& other) : size(other.size), capacity(other.capacity), items(nullptr) {
-      if (capacity > 0) {
-        items = static_cast<T*>(malloc(capacity * sizeof(T)));
-        for (uint8_t i = 0; i < size; ++i) {
-          items[i] = other.items[i];
-        }
-      }
-    }
+    RandomAccessArray(const RandomAccessArray& other) = delete;
+    RandomAccessArray& operator=(const RandomAccessArray& other) = delete;
 
-    RandomAccessArr& operator=(const RandomAccessArr& other) {
-      if (this != &other) {
-        if (items) 
-          free(items);
-
-        size = other.size;
-        capacity = other.capacity;
-        items = nullptr;
-
-        if (capacity > 0) {
-          items = static_cast<T*>(malloc(capacity * sizeof(T)));
-          for (uint8_t i = 0; i < size; ++i) {
-            items[i] = other.items[i];
-          }
-        }
-      }
-      return *this;
-    }
-
-    RandomAccessArr(RandomAccessArr&& other) noexcept : size(other.size), capacity(other.capacity), items(other.items) {
+    RandomAccessArray(RandomAccessArray&& other) noexcept : size(other.size), capacity(other.capacity), items(other.items) {
       other.size = 0;
       other.capacity = 0;
       other.items = nullptr;
     }
 
-    RandomAccessArr& operator=(RandomAccessArr&& other) noexcept {
+    RandomAccessArray& operator=(RandomAccessArray&& other) noexcept {
       if (this != &other) {
-        if (items) 
-          free(items);
+        if (this->items) 
+          free(this->items);
 
-        size = other.size;
-        capacity = other.capacity;
-        items = other.items;
+        this->size = other.size;
+        this->capacity = other.capacity;
+        this->items = other.items;
 
         other.size = 0;
         other.capacity = 0;
@@ -69,7 +44,7 @@ class RandomAccessArr {
       if (this->size >= this->capacity) {
         auto new_capacity = 2 * this->capacity + 1;
         if (new_capacity > 32) 
-          new_capacity = 32; // at max 32 children
+          new_capacity = 32;
 
         this->items = static_cast<T*>(realloc(this->items, new_capacity * sizeof(T)));
         this->capacity = new_capacity;

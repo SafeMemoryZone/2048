@@ -20,8 +20,8 @@ int main(int argc, char **argv) {
   std::mt19937 gen(rd());
 
   while(!board.IsTerminalState()) {
-    board.MakeAction(mcts.CalculateBestAction(16000));
-    std::vector<std::pair<int, int>> empty_tiles;
+    board.MakeAction(mcts.CalculateBestAction(6000));
+    std::vector<std::pair<uint8_t, uint8_t>> empty_tiles;
 
     for(int i = 0; i < 4; i++) {
       for(int j = 0; j < 4; j++) {
@@ -29,18 +29,18 @@ int main(int argc, char **argv) {
           empty_tiles.emplace_back(i, j);
       }
     }
-    
+
     std::uniform_int_distribution<> dis1(0, empty_tiles.size() - 1);
     std::uniform_int_distribution<> dis2(0, 9);
-    
-    const auto [i_idx, j_idx] = empty_tiles.at(dis1(gen));
-    int c = dis2(gen) < 9 ? 2 : 4;
 
-    board.board.at(i_idx).at(j_idx) = c;
+    const auto [i_idx, j_idx] = empty_tiles.at(dis1(gen));
+    uint8_t action = dis2(gen) < 9 ? 2 : 4;
+
+    board.board.at(i_idx).at(j_idx) = action;
 
     mcts.FindNodeByBoard(board);
 
-    std::cout << "Val: " << board.merge_val << '\n';
+    std::cout << "Merge score: " << board.merge_val << " Tree size: " << mcts.GetTreeSize() << '\n';
     for(const auto &row: board.board) {
       for(const auto cell: row) {
         std::cout << cell << ' ';
@@ -50,3 +50,4 @@ int main(int argc, char **argv) {
     std::cout << "\n\n";
   }
 }
+

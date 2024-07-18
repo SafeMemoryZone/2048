@@ -2,7 +2,7 @@
 #define NODE_HPP
 #include "board.hpp"
 #include <cstdint>
-#include "random_access_arr.hpp"
+#include "random_access_array.hpp"
 
 struct Node {
   double score;
@@ -10,9 +10,8 @@ struct Node {
   Node *parent;
   uint8_t action : 3;
   bool is_ai_turn : 1;
-  bool should_soft_play : 1;
   bool is_expanded : 1;
-  RandomAccessArr<uint8_t> unexpanded_actions;
+  RandomAccessArray<uint8_t> unexpanded_actions;
   std::vector<Node*> children;
   Board board;
 };

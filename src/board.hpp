@@ -1,6 +1,6 @@
 #ifndef BOARD_HPP
 #define BOARD_HPP
-#include "random_access_arr.hpp"
+#include "random_access_array.hpp"
 #include <array>
 #include <cstdint>
 
@@ -12,7 +12,7 @@
 struct Board {
   bool IsTerminalState() const;
   void MakeAction(int action);
-  RandomAccessArr<uint8_t> GetLegalActions() const;
+  RandomAccessArray<uint8_t> GetLegalActions() const;
   int CountOccupiedTiles() const;
   double GetBoardSum() const;
 

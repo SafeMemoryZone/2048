@@ -1,5 +1,5 @@
 #include "board.hpp"
-#include "random_access_arr.hpp"
+#include "random_access_array.hpp"
 #include <cassert>
 #include <numeric>
 
@@ -119,8 +119,8 @@ void Board::MakeAction(int action) {
   }
 }
 
-RandomAccessArr<uint8_t> Board::GetLegalActions() const {
-  RandomAccessArr<uint8_t> legal_moves;
+RandomAccessArray<uint8_t> Board::GetLegalActions() const {
+  RandomAccessArray<uint8_t> legal_moves;
 
   for(uint8_t action = 0; action < 4; action++) {
     Board test = *this;
