@@ -11,10 +11,10 @@
 
 struct Board {
   bool IsTerminalState() const;
-  void MakeAction(int action);
+  void MakeAction(uint8_t action);
   RandomAccessArray<uint8_t> GetLegalActions() const;
-  int CountOccupiedTiles() const;
-  double GetBoardSum() const;
+  uint8_t CountOccupiedTiles() const;
+  uint64_t GetBoardSum() const;
 
   uint64_t merge_val;
   std::array<std::array<uint32_t, 4>, 4> board;

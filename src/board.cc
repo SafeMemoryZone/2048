@@ -34,7 +34,7 @@ bool Board::IsTerminalState() const {
   return true;
 }
 
-void Board::MakeAction(int action) {
+void Board::MakeAction(uint8_t action) {
   auto CanCombineTiles = [this](int i1, int j1, int i2, int j2) -> bool {
     if (i1 < 0 || i1 > 3 || j1 < 0 || j1 > 3 || 
         i2 < 0 || i2 > 3 || j2 < 0 || j2 > 3) return false;
@@ -132,8 +132,8 @@ RandomAccessArray<uint8_t> Board::GetLegalActions() const {
   return legal_moves;
 }
 
-int Board::CountOccupiedTiles() const {
-  int count = 0;
+uint8_t Board::CountOccupiedTiles() const {
+  uint8_t count = 0;
 
   for(const auto &row: this->board)  {
     count += std::count_if(row.begin(), row.end(), [](auto x) {return x;} );
@@ -142,11 +142,11 @@ int Board::CountOccupiedTiles() const {
   return count;
 }
 
-double Board::GetBoardSum() const {
-  double accum = 0;
+uint64_t Board::GetBoardSum() const {
+  uint64_t accum = 0;
 
   for(const auto &row: this->board) {
-    accum += std::accumulate(row.begin(), row.end(), 0.0);
+    accum += std::accumulate(row.begin(), row.end(), 0);
   }
 
   return accum;

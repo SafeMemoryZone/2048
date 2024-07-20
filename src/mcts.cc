@@ -215,7 +215,7 @@ double Mcts::Simulate(const Node *node) const {
 }
 
 void Mcts::Backpropagate(Node *node, double eval) const {
-  auto curr_n = node;
+  Node *curr_n = node;
 
   while (curr_n != nullptr) {
     curr_n->visit_count++;
