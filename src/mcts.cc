@@ -83,7 +83,7 @@ Node *Mcts::SelectBestLeafNode(Node *node) {
 
   if(!node->is_ai_turn) {
     std::uniform_int_distribution<> tile_dis(0, 9);
-    int action_choice = tile_dis(gen) < 9 ? 2 : 4;
+    int action_choice = tile_dis(gen) < 9 ? 1 : 2;
 
     std::vector<Node *> possible_children;
 
@@ -145,8 +145,8 @@ Node *Mcts::Expand(Node *node) {
       // +---+---+---+---+---+---+---+---+
       //   7   6   5   4   3   2   1   0
       // (MSB)                       (LSB)
-      int action1 = (2 << 4) | i & 0xF;
-      int action2 = (4 << 4) | i & 0xF;
+      int action1 = (1 << 4) | i & 0xF;
+      int action2 = (2 << 4) | i & 0xF;
       node->unexpanded_actions.Add(action1);
       node->unexpanded_actions.Add(action2);
     }
@@ -189,9 +189,9 @@ double Mcts::Simulate(const Node *node) const {
 
       const int c = dis2(gen);
       if (c < 9) {
-        board.SetAt(i, 2);
+        board.SetAt(i, 1);
       } else {
-        board.SetAt(i, 4);
+        board.SetAt(i, 2);
       }
     } else {
       RandomAccessArray<uint8_t> legal_actions = board.GetLegalActions();

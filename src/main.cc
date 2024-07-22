@@ -1,69 +1,24 @@
 #include "mcts.hpp"
+#include "node.hpp"
 #include <iostream>
 #include <vector>
 #include <random>
 #include <sys/signal.h>
 
 int main(int argc, char **argv) {
+  constexpr uint32_t iter_count = 100;
   Board board;
-
   board.board = 0;
   board.merge_val = 0;
-  board.SetAt(0, 2);
-  board.SetAt(1, 2);
-  for(int i = 0; i < 4; i++) {
-    for(int j = 0; j < 4; j++) {
-      int cell = (board.board >> ((i * 4 + j) * 4)) & 0xF;
-      if(!cell) 
-        std::cout << '0' << " ";
-      else
-        std::cout << std::pow(2, cell) << " ";
-    }
-    std::cout << '\n';
-  }
-  std::cout << "\n\n";
-
-  auto l = board.GetLegalActions();
-  board.board = 0;
-  board.SetAt(1, 2);
-  board.SetAt(4, 2);
-  board.SetAt(8, 2);
-
-  for(int i = 0; i < 4; i++) {
-    for(int j = 0; j < 4; j++) {
-      int cell = (board.board >> (i * 4 + j) * 4) & 0xF;
-      if(!cell) 
-        std::cout << '0' << " ";
-      else
-        std::cout << std::pow(2, cell) << " ";
-    }
-    std::cout << '\n';
-  }
-  std::cout << "\n\n";
-
-
-  l = board.GetLegalActions();
-
-  board.MakeAction(l.GetRandomItemAndRemove());
-  for(int i = 0; i < 4; i++) {
-    for(int j = 0; j < 4; j++) {
-      int cell = (board.board >> (i * 4 + j) * 4) & 0xF;
-      if(!cell) 
-        std::cout << '0' << " ";
-      else
-        std::cout << std::pow(2, cell) << " ";
-    }
-    std::cout << '\n';
-  }
-  std::cout << "\n\n";
-  return 0;
 
   Mcts mcts(board);
   std::random_device rd;
   std::mt19937 gen(rd());
 
+  std::cout << "Statistics:\nNode size: " << sizeof(Node) << "b\nIteration count: " << iter_count << "\n\n";
+
   while(!board.IsTerminalState()) {
-    board.MakeAction(mcts.CalculateBestAction(100));
+    board.MakeAction(mcts.CalculateBestAction(iter_count));
     std::vector<uint8_t> empty_tiles;
 
     for(int i = 0; i < 16; i++) {
@@ -83,13 +38,16 @@ int main(int argc, char **argv) {
     uint32_t merge_val = 1 << board.merge_val;
 
     std::cout << "Merge score: " << merge_val << " Tree size: " << mcts.GetTreeSize() << '\n';
+
     for(int i = 0; i < 4; i++) {
       for(int j = 0; j < 4; j++) {
-        int cell = (board.board >> (i * 4 + j) * 4) & 0xF;
+        int cell = (board.board >> ((i * 4 + j) * 4)) & 0xF;
         if(!cell) 
           std::cout << '0' << " ";
-        else
-          std::cout << std::pow(2, cell) << " ";
+        else {
+          uint32_t num = 1 << cell;
+          std::cout << num << " ";
+        }
       }
       std::cout << '\n';
     }
