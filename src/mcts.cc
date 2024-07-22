@@ -1,13 +1,12 @@
 #include "mcts.hpp"
 #include "config.hpp"
-#include <array>
 #include <cassert>
 #include <cfloat>
 #include <cstdint>
 #include <random>
 #include <vector>
 
-static void InitNewNode(Node *node, Node *parent, uint8_t action, const Board &board, bool is_ai_turn) {
+static void InitNewNode(Node *node, Node *parent, int action, const Board &board, bool is_ai_turn) {
   node->score = 0;
   node->visit_count = 0;
   node->parent = parent;
@@ -22,7 +21,7 @@ static void InitNewNode(Node *node, Node *parent, uint8_t action, const Board &b
 Mcts::Mcts(const Board &board) {
   this->tree_root = new Node;
   InitNewNode(this->tree_root, nullptr, UINT8_MAX, board, true);
-  this->divisor = 1024;
+  this->divisor = 2;
   this->tree_size = 1;
 }
 
@@ -31,11 +30,11 @@ Mcts::~Mcts() {
     this->CleanupTreeFromRoot(this->tree_root);
 }
 
-uint8_t Mcts::CalculateBestAction(uint64_t iter_count) {
+int Mcts::CalculateBestAction(int iter_count) {
   std::random_device rd;
   std::mt19937 gen(rd());
 
-  for (uint64_t i = 0; i < iter_count; i++) {
+  for (uint32_t i = 0; i < iter_count; i++) {
     Node *leaf = this->SelectBestLeafNode(this->tree_root);
 
     if(!leaf->board.IsTerminalState() && leaf->visit_count >= node_expansion_threshold)
@@ -45,10 +44,10 @@ uint8_t Mcts::CalculateBestAction(uint64_t iter_count) {
     this->Backpropagate(leaf, eval);
   }
 
-  uint8_t best_action = UINT8_MAX;
-  uint64_t max_visits = 0;
+  int best_action = UINT8_MAX;
+  uint32_t max_visits = 0;
 
-  for (const auto child: this->tree_root->children) {
+  for (const Node *child: this->tree_root->children) {
     if (child->visit_count > max_visits) {
       best_action = child->action;
       max_visits = child->visit_count;
@@ -63,7 +62,7 @@ Node *Mcts::GetBestUctChild(const Node *node) {
   double best_score = -DBL_MAX;
   Node *best_child = nullptr;
 
-  for (const auto child: node->children) {
+  for (Node *child: node->children) {
     double score = this->GetUctScore(child);
     if (score > best_score) {
       best_score = score;
@@ -84,17 +83,16 @@ Node *Mcts::SelectBestLeafNode(Node *node) {
 
   if(!node->is_ai_turn) {
     std::uniform_int_distribution<> tile_dis(0, 9);
-    uint8_t action_choice = tile_dis(gen) < 9 ? 2 : 4;
+    int action_choice = tile_dis(gen) < 9 ? 2 : 4;
 
     std::vector<Node *> possible_children;
 
-    for(const auto child: node->children) {
+    for(Node *child: node->children) {
       if(child->action == action_choice)
         possible_children.emplace_back(child);
     }
 
     std::uniform_int_distribution<> child_dis(0, possible_children.size() - 1);
-
     return this->SelectBestLeafNode(possible_children.at(child_dis(gen)));
   }
 
@@ -124,55 +122,48 @@ Node *Mcts::Expand(Node *node) {
       node->is_expanded = true;
     }
 
-    uint8_t action = node->unexpanded_actions.GetRandomItemAndRemove();
+    int action = node->unexpanded_actions.GetRandomItemAndRemove();
     
-    Node *n = new Node;
-    InitNewNode(n, node, action, node->board, false);
-    n->board.MakeAction(action);
+    Node *new_node = new Node;
+    InitNewNode(new_node, node, action, node->board, false);
+    new_node->board.MakeAction(action);
     this->tree_size++;
 
-    node->children.emplace_back(n);
+    node->children.emplace_back(new_node);
 
-    return n;
+    return new_node;
   } 
   if(!node->is_expanded) {
-    for(uint8_t i = 0; i < 4; i++) {
-      for(uint8_t j = 0; j < 4; j++) {
-        if(node->board.board.at(i).at(j))
-          continue;
-
-        // Legend:
-        //  i - i index
-        //  j - j index
-        //  v - value of the tile
-        // 1 Byte
-        // +---+---+---+---+---+---+---+---+
-        // | 0 | v | v | v | j | j | i | i |
-        // +---+---+---+---+---+---+---+---+
-        //   7   6   5   4   3   2   1   0
-        // (MSB)                       (LSB)
-
-        uint8_t action1 = (2 << 4) | (j << 2) | i;
-        uint8_t action2 = (4 << 4) | (j << 2) | i;
-        node->unexpanded_actions.Add(action1);
-        node->unexpanded_actions.Add(action2);
-      }
+    for(int i = 0; i < 16; i++) {
+      // Legend:
+      //  i - i index
+      //  j - j index
+      //  v - value of the tile
+      // 1 Byte
+      // +---+---+---+---+---+---+---+---+
+      // | 0 | v | v | v | i | i | i | i |
+      // +---+---+---+---+---+---+---+---+
+      //   7   6   5   4   3   2   1   0
+      // (MSB)                       (LSB)
+      int action1 = (2 << 4) | i & 0xF;
+      int action2 = (4 << 4) | i & 0xF;
+      node->unexpanded_actions.Add(action1);
+      node->unexpanded_actions.Add(action2);
     }
     node->is_expanded = true;
   }
 
-  uint8_t a = node->unexpanded_actions.GetRandomItemAndRemove();
-  uint8_t i_idx = a & 0b11;
-  uint8_t j_idx = (a & 0b1100) >> 2;
-  uint8_t action = (a & 0b1110000) >> 4;
+  int item = node->unexpanded_actions.GetRandomItemAndRemove();
+  int i = item & 0b1111;
+  int action = (item & 0b1110000) >> 4;
 
-  Node *n = new Node;
-  InitNewNode(n, node, action, node->board, true);
-  n->board.board.at(i_idx).at(j_idx) = action;
-  node->children.emplace_back(n);
+  Node *new_node = new Node;
+  InitNewNode(new_node, node, action, node->board, true);
+  new_node->board.SetAt(i, action);
+  node->children.emplace_back(new_node);
   this->tree_size++;
 
-  return n;
+  return new_node;
 }
 
 double Mcts::Simulate(const Node *node) const {
@@ -184,24 +175,23 @@ double Mcts::Simulate(const Node *node) const {
 
   while (!board.IsTerminalState()) {
     if (is_environment_turn) {
-      std::vector<std::pair<uint8_t, uint8_t>> empty_tiles;
-      for (uint8_t i = 0; i < 4; i++) {
-        for (uint8_t j = 0; j < 4; j++) {
-          if (board.board.at(i).at(j) == 0)
-            empty_tiles.emplace_back(i, j);
-        }
+      std::vector<uint8_t> empty_tiles;
+      for(int i = 0; i < 16; i++) {
+        if(!board.GetAt(i))
+          empty_tiles.emplace_back(i);
       }
+
       std::uniform_int_distribution<> dis(0, empty_tiles.size() - 1);
 
-      const auto [i_idx, j_idx] = empty_tiles.at(dis(gen));
+      const int i = empty_tiles.at(dis(gen));
 
       std::uniform_int_distribution<> dis2(0, 9);
 
-      const uint8_t c = dis2(gen);
+      const int c = dis2(gen);
       if (c < 9) {
-        board.board.at(i_idx).at(j_idx) = 2;
+        board.SetAt(i, 2);
       } else {
-        board.board.at(i_idx).at(j_idx) = 4;
+        board.SetAt(i, 4);
       }
     } else {
       RandomAccessArray<uint8_t> legal_actions = board.GetLegalActions();
@@ -253,12 +243,12 @@ void Mcts::FindNodeByBoard(const Board &board) {
   }
 }
 
-bool Mcts::FindNodeWithCleanup(const Board &board, Node *node, uint8_t curr_level) {
+bool Mcts::FindNodeWithCleanup(const Board &board, Node *node, int curr_level) {
   if(curr_level > 2)
     return false;
 
   if (node->board.board == board.board) {
-    for (const auto child: node->parent->children) {
+    for (Node *child: node->parent->children) {
       if (child != node) 
         this->CleanupTreeFromRoot(child);
     }
@@ -268,7 +258,7 @@ bool Mcts::FindNodeWithCleanup(const Board &board, Node *node, uint8_t curr_leve
     return true;
   } 
 
-  for (const auto child: node->children) 
+  for (Node *child: node->children) 
     if(this->FindNodeWithCleanup(board, child, curr_level + 1))
       return true;
 
@@ -278,7 +268,7 @@ bool Mcts::FindNodeWithCleanup(const Board &board, Node *node, uint8_t curr_leve
 void Mcts::CleanupTreeFromRoot(Node *node) {
   assert(node != nullptr);
 
-  for (const auto child: node->children) {
+  for (Node *child: node->children) {
     this->CleanupTreeFromRoot(child);
   }
 

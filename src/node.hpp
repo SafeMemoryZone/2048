@@ -4,9 +4,10 @@
 #include <cstdint>
 #include "random_access_array.hpp"
 
+// Size: ~88 bytes
 struct Node {
   double score;
-  uint64_t visit_count;
+  uint32_t visit_count;
   Node *parent;
   uint8_t action : 3;
   bool is_ai_turn : 1;

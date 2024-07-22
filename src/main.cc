@@ -7,43 +7,89 @@
 int main(int argc, char **argv) {
   Board board;
 
-  for(auto &row: board.board) {
-    std::fill(row.begin(), row.end(), 0);
-  }
-
-  board.board.at(0).at(0) = 2;
-  board.board.at(0).at(1) = 2;
+  board.board = 0;
   board.merge_val = 0;
+  board.SetAt(0, 2);
+  board.SetAt(1, 2);
+  for(int i = 0; i < 4; i++) {
+    for(int j = 0; j < 4; j++) {
+      int cell = (board.board >> ((i * 4 + j) * 4)) & 0xF;
+      if(!cell) 
+        std::cout << '0' << " ";
+      else
+        std::cout << std::pow(2, cell) << " ";
+    }
+    std::cout << '\n';
+  }
+  std::cout << "\n\n";
+
+  auto l = board.GetLegalActions();
+  board.board = 0;
+  board.SetAt(1, 2);
+  board.SetAt(4, 2);
+  board.SetAt(8, 2);
+
+  for(int i = 0; i < 4; i++) {
+    for(int j = 0; j < 4; j++) {
+      int cell = (board.board >> (i * 4 + j) * 4) & 0xF;
+      if(!cell) 
+        std::cout << '0' << " ";
+      else
+        std::cout << std::pow(2, cell) << " ";
+    }
+    std::cout << '\n';
+  }
+  std::cout << "\n\n";
+
+
+  l = board.GetLegalActions();
+
+  board.MakeAction(l.GetRandomItemAndRemove());
+  for(int i = 0; i < 4; i++) {
+    for(int j = 0; j < 4; j++) {
+      int cell = (board.board >> (i * 4 + j) * 4) & 0xF;
+      if(!cell) 
+        std::cout << '0' << " ";
+      else
+        std::cout << std::pow(2, cell) << " ";
+    }
+    std::cout << '\n';
+  }
+  std::cout << "\n\n";
+  return 0;
 
   Mcts mcts(board);
   std::random_device rd;
   std::mt19937 gen(rd());
 
   while(!board.IsTerminalState()) {
-    board.MakeAction(mcts.CalculateBestAction(6000));
-    std::vector<std::pair<uint8_t, uint8_t>> empty_tiles;
+    board.MakeAction(mcts.CalculateBestAction(100));
+    std::vector<uint8_t> empty_tiles;
 
-    for(int i = 0; i < 4; i++) {
-      for(int j = 0; j < 4; j++) {
-        if(!board.board.at(i).at(j))
-          empty_tiles.emplace_back(i, j);
-      }
+    for(int i = 0; i < 16; i++) {
+      if(!board.GetAt(i))
+        empty_tiles.emplace_back(i);
     }
 
     std::uniform_int_distribution<> dis1(0, empty_tiles.size() - 1);
     std::uniform_int_distribution<> dis2(0, 9);
 
-    const auto [i_idx, j_idx] = empty_tiles.at(dis1(gen));
-    uint8_t action = dis2(gen) < 9 ? 2 : 4;
+    const int i_idx = empty_tiles.at(dis1(gen));
+    int action = dis2(gen) < 9 ? 2 : 4;
 
-    board.board.at(i_idx).at(j_idx) = action;
-
+    board.SetAt(i_idx, action);
     mcts.FindNodeByBoard(board);
 
-    std::cout << "Merge score: " << board.merge_val << " Tree size: " << mcts.GetTreeSize() << '\n';
-    for(const auto &row: board.board) {
-      for(const auto cell: row) {
-        std::cout << cell << ' ';
+    uint32_t merge_val = 1 << board.merge_val;
+
+    std::cout << "Merge score: " << merge_val << " Tree size: " << mcts.GetTreeSize() << '\n';
+    for(int i = 0; i < 4; i++) {
+      for(int j = 0; j < 4; j++) {
+        int cell = (board.board >> (i * 4 + j) * 4) & 0xF;
+        if(!cell) 
+          std::cout << '0' << " ";
+        else
+          std::cout << std::pow(2, cell) << " ";
       }
       std::cout << '\n';
     }

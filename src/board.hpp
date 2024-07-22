@@ -1,7 +1,6 @@
 #ifndef BOARD_HPP
 #define BOARD_HPP
 #include "random_access_array.hpp"
-#include <array>
 #include <cstdint>
 
 #define DIRECTION_UP 0
@@ -11,12 +10,13 @@
 
 struct Board {
   bool IsTerminalState() const;
-  void MakeAction(uint8_t action);
-  RandomAccessArray<uint8_t> GetLegalActions() const;
-  uint8_t CountOccupiedTiles() const;
-  uint64_t GetBoardSum() const;
+  void MakeAction(int action);
+  RandomAccessArray<uint8_t> GetLegalActions();
+  uint32_t GetBoardSum() const;
+  void SetAt(int idx, int tile);
+  int GetAt(int idx);
 
-  uint64_t merge_val;
-  std::array<std::array<uint32_t, 4>, 4> board;
+  uint32_t merge_val;
+  uint64_t board;
 };
 #endif // BOARD_HPP 
