@@ -10,6 +10,8 @@ int main(int argc, char **argv) {
   Board board;
   board.board = 0;
   board.merge_val = 0;
+  board.SetAt(0, 1);
+  board.SetAt(1, 1);
 
   Mcts mcts(board);
   std::random_device rd;
