@@ -121,8 +121,6 @@ Node *Mcts::Expand(Node *node) {
   } 
   if(!node->is_expanded) {
     for(int i = 0; i < 16; i++) {
-      if(node->board.GetAt(i))
-        continue;
       // Legend:
       //  i - i index
       //  j - j index
