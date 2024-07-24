@@ -6,7 +6,7 @@
 #include <sys/signal.h>
 
 int main(int argc, char **argv) {
-  constexpr uint32_t iter_count = 1000;
+  constexpr uint32_t iter_count = 5000;
   Board board;
   board.board = 0;
   board.merge_val = 0;

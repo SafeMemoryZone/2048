@@ -206,6 +206,7 @@ double Mcts::Simulate(const Node *node) const {
 }
 
 void Mcts::Backpropagate(Node *node, double eval) const {
+  // TODO: Decide if using weights is better
   Node *curr_n = node;
 
   while (curr_n != nullptr) {
