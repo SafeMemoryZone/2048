@@ -6,8 +6,7 @@ bool Board::IsTerminalState() const {
   for (int i = 0; i < 16; i++) {
     int curr_tile = (this->board >> (i * 4)) & 0xF;
 
-    if (!curr_tile) 
-      return false;
+    if (!curr_tile) return false;
 
     // Check right neighbor
     if ((i % 4) != 3) {
