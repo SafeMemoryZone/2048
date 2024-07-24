@@ -21,7 +21,7 @@ static void InitNewNode(Node *node, Node *parent, int action, const Board &board
 Mcts::Mcts(const Board &board) {
   this->tree_root = new Node;
   InitNewNode(this->tree_root, nullptr, UINT8_MAX, board, true);
-  this->divisor = 2;
+  this->divisor = 1024;
   this->tree_size = 1;
 }
 
@@ -141,25 +141,26 @@ Node *Mcts::Expand(Node *node) {
       //  v - value of the tile
       // 1 Byte
       // +---+---+---+---+---+---+---+---+
-      // | 0 | v | v | v | i | i | i | i |
+      // | 0 | 0 | v | v | i | i | i | i |
       // +---+---+---+---+---+---+---+---+
       //   7   6   5   4   3   2   1   0
       // (MSB)                       (LSB)
-      int action1 = (1 << 4) | i & 0xF;
-      int action2 = (2 << 4) | i & 0xF;
+      int action1 = (1 << 4) | (i & 0xF);
+      int action2 = (2 << 4) | (i & 0xF);
       node->unexpanded_actions.Add(action1);
       node->unexpanded_actions.Add(action2);
     }
     node->is_expanded = true;
   }
 
+  // TODO: Add distribution bias
   int item = node->unexpanded_actions.GetRandomItemAndRemove();
   int i = item & 0b1111;
-  int action = (item & 0b1110000) >> 4;
+  int tile = (item & 0b0110000) >> 4;
 
   Node *new_node = new Node;
-  InitNewNode(new_node, node, action, node->board, true);
-  new_node->board.SetAt(i, action);
+  InitNewNode(new_node, node, tile, node->board, true);
+  new_node->board.SetAt(i, tile);
   node->children.emplace_back(new_node);
   this->tree_size++;
 

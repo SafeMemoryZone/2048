@@ -6,7 +6,7 @@
 #include <sys/signal.h>
 
 int main(int argc, char **argv) {
-  constexpr uint32_t iter_count = 100;
+  constexpr uint32_t iter_count = 1000;
   Board board;
   board.board = 0;
   board.merge_val = 0;
@@ -32,14 +32,12 @@ int main(int argc, char **argv) {
     std::uniform_int_distribution<> dis2(0, 9);
 
     const int i_idx = empty_tiles.at(dis1(gen));
-    int action = dis2(gen) < 9 ? 2 : 4;
+    int action = dis2(gen) < 9 ? 1 : 2;
 
     board.SetAt(i_idx, action);
     mcts.FindNodeByBoard(board);
 
-    uint32_t merge_val = 1 << board.merge_val;
-
-    std::cout << "Merge score: " << merge_val << " Tree size: " << mcts.GetTreeSize() << '\n';
+    std::cout << "Merge score: " << board.merge_val << " Tree size: " << mcts.GetTreeSize() << '\n';
 
     for(int i = 0; i < 4; i++) {
       for(int j = 0; j < 4; j++) {

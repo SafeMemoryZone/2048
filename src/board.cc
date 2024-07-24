@@ -6,9 +6,8 @@ bool Board::IsTerminalState() const {
   for (int i = 0; i < 16; i++) {
     int curr_tile = (this->board >> (i * 4)) & 0xF;
 
-    if (!curr_tile) {
+    if (!curr_tile) 
       return false;
-    }
 
     // Check right neighbor
     if ((i % 4) != 3) {
@@ -31,8 +30,133 @@ bool Board::IsTerminalState() const {
 }
 
 void Board::MakeAction(int action) {
-  // TODO: Implement
-  // NOTE: Update `merge_val += 1 << (tile_val + 1)`
+  // TODO: Cleanup, optimize and make code more modular
+  switch(action) {
+    case DIRECTION_UP:
+      for(int col_idx = 0; col_idx < 4; col_idx++) {
+        for(int row_idx = 0; row_idx < 4; row_idx++) {
+          int curr_tile = (this->board >> (row_idx * 4 + col_idx) * 4) & 0xF;
+          if(!curr_tile)
+            continue;
+          int k = row_idx;
+          int next_tile = 0;
+
+          while(k >= 1) {
+            next_tile = (this->board >> ((k - 1) * 4 + col_idx) * 4) & 0xF;
+            if(next_tile)
+              break;
+            k--;
+          }
+
+          if(next_tile && next_tile == curr_tile) {
+            this->board &= ~(0xFull << (row_idx * 4 + col_idx) * 4); // reset current tile
+            next_tile++; // increment current tile
+            this->board &= ~(0xFull << ((k - 1) * 4 + col_idx) * 4); // reset next tile
+            this->board |= (uint64_t)next_tile << ((k - 1) * 4 + col_idx) * 4; // set next tile
+            this->merge_val += 1ull << next_tile;
+          }
+          else {
+            this->board &= ~(0xFull << (row_idx * 4 + col_idx) * 4);
+            this->board &= ~(0xFull << (k * 4 + col_idx) * 4);
+            this->board |= (uint64_t)curr_tile << (k * 4 + col_idx) * 4;
+          }
+        }
+      }
+      break;
+    case DIRECTION_DOWN:
+      for(int col_idx = 0; col_idx < 4; col_idx++) {
+        for(int row_idx = 3; row_idx >= 0; row_idx--) {
+          int curr_tile = (this->board >> (row_idx * 4 + col_idx) * 4) & 0xF;
+          if(!curr_tile)
+            continue;
+          int k = row_idx;
+          int next_tile = 0;
+
+          while(k < 3) {
+            next_tile = (this->board >> ((k + 1) * 4 + col_idx) * 4) & 0xF;
+            if(next_tile)
+              break;
+            k++;
+          }
+
+          if(next_tile && next_tile == curr_tile) {
+            this->board &= ~(0xFull << (row_idx * 4 + col_idx) * 4); // reset current tile
+            next_tile++; // increment current tile
+            this->board &= ~(0xFull << ((k + 1) * 4 + col_idx) * 4); // reset next tile
+            this->board |= (uint64_t)next_tile << ((k + 1) * 4 + col_idx) * 4; // set next tile
+            this->merge_val += 1ull << next_tile;
+          }
+          else {
+            this->board &= ~(0xFull << (row_idx * 4 + col_idx) * 4);
+            this->board &= ~(0xFull << (k * 4 + col_idx) * 4);
+            this->board |= (uint64_t)curr_tile << (k * 4 + col_idx) * 4;
+          }
+        }
+      }
+      break;
+    case DIRECTION_LEFT:
+      for(int row_idx = 0; row_idx < 4; row_idx++) {
+        for(int col_idx = 0; col_idx < 4; col_idx++) {
+          int curr_tile = (this->board >> (row_idx * 4 + col_idx) * 4) & 0xF;
+          if(!curr_tile)
+            continue;
+          int k = col_idx;
+          int next_tile = 0;
+
+          while(k >= 1) {
+            next_tile = (this->board >> (row_idx * 4 + k - 1) * 4) & 0xF;
+            if(next_tile)
+              break;
+            k--;
+          }
+
+          if(next_tile && next_tile == curr_tile) {
+            this->board &= ~(0xFull << (row_idx * 4 + col_idx) * 4); // reset current tile
+            next_tile++; // increment current tile
+            this->board &= ~(0xFull << (row_idx * 4 + k - 1) * 4); // reset next tile
+            this->board |= (uint64_t)next_tile << (row_idx * 4 + k - 1) * 4; // set next tile
+            this->merge_val += 1ull << next_tile;
+          }
+          else {
+            this->board &= ~(0xFull << (row_idx * 4 + col_idx) * 4);
+            this->board &= ~(0xFull << (row_idx * 4 + k) * 4);
+            this->board |= (uint64_t)curr_tile << (row_idx * 4 + k) * 4;
+          }
+        }
+      }
+      break;
+    case DIRECTION_RIGHT:
+      for(int row_idx = 0; row_idx < 4; row_idx++) {
+        for(int col_idx = 3; col_idx >= 0; col_idx--) {
+          int curr_tile = (this->board >> (row_idx * 4 + col_idx) * 4) & 0xF;
+          if(!curr_tile)
+            continue;
+          int k = col_idx;
+          int next_tile = 0;
+
+          while(k < 3) {
+            next_tile = (this->board >> (row_idx * 4 + k + 1) * 4) & 0xF;
+            if(next_tile)
+              break;
+            k++;
+          }
+
+          if(next_tile && next_tile == curr_tile) {
+            this->board &= ~(0xFull << (row_idx * 4 + col_idx) * 4); // reset current tile
+            next_tile++; // increment current tile
+            this->board &= ~(0xFull << (row_idx * 4 + k + 1) * 4); // reset next tile
+            this->board |= (uint64_t)next_tile << (row_idx * 4 + k + 1) * 4; // set next tile
+            this->merge_val += 1ull << next_tile;
+          }
+          else {
+            this->board &= ~(0xFull << (row_idx * 4 + col_idx) * 4);
+            this->board &= ~(0xFull << (row_idx * 4 + k) * 4);
+            this->board |= (uint64_t)curr_tile << (row_idx * 4 + k) * 4;
+          }
+        }
+      }
+      break;
+  }
 }
 
 void Board::SetAt(int idx, int tile) {
@@ -45,15 +169,15 @@ int Board::GetAt(int idx) {
 }
 
 uint32_t Board::GetBoardSum() const {
-  uint64_t b = this->board;
+  uint32_t sum = 0;
 
-  // Incrementally combine all tiles
-  b = (b & 0x0F0F0F0F0F0F0F0F) + ((b >> 4) & 0x0F0F0F0F0F0F0F0F);
-  b = (b & 0x00FF00FF00FF00FF) + ((b >> 8) & 0x00FF00FF00FF00FF);
-  b = (b & 0x0000FFFF0000FFFF) + ((b >> 16) & 0x0000FFFF0000FFFF);
-  b = (b & 0x00000000FFFFFFFF) + ((b >> 32) & 0x00000000FFFFFFFF);
+  for (int i = 0; i < 16; i++) {
+    int tile = (this->board >> i * 4) & 0xF;
+    if (tile) 
+      sum += 1ull << tile;
+  }
 
-  return b;
+  return sum;
 }
 
 RandomAccessArray<uint8_t> Board::GetLegalActions() {
