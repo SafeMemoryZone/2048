@@ -7,6 +7,7 @@
 // Size: ~88 bytes
 struct Node {
   double score;
+  double weight;
   uint32_t visit_count;
   Node *parent;
   uint8_t action : 3;

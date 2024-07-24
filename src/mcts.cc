@@ -6,7 +6,7 @@
 #include <random>
 #include <vector>
 
-static void InitNewNode(Node *node, Node *parent, int action, const Board &board, bool is_ai_turn) {
+static void InitNewNode(Node *node, Node *parent, int action, const Board &board, bool is_ai_turn, double weight) {
   node->score = 0;
   node->visit_count = 0;
   node->parent = parent;
@@ -16,11 +16,12 @@ static void InitNewNode(Node *node, Node *parent, int action, const Board &board
   node->is_expanded = false;
   node->unexpanded_actions.Clear();
   node->children.clear();
+  node->weight = weight;
 }
 
 Mcts::Mcts(const Board &board) {
   this->tree_root = new Node;
-  InitNewNode(this->tree_root, nullptr, UINT8_MAX, board, true);
+  InitNewNode(this->tree_root, nullptr, UINT8_MAX, board, true, 1);
   this->divisor = 1024;
   this->tree_size = 1;
 }
@@ -81,21 +82,6 @@ Node *Mcts::SelectBestLeafNode(Node *node) {
   if(this->IsLeafNode(node))
     return node;
 
-  if(!node->is_ai_turn) {
-    std::uniform_int_distribution<> tile_dis(0, 9);
-    int action_choice = tile_dis(gen) < 9 ? 1 : 2;
-
-    std::vector<Node *> possible_children;
-
-    for(Node *child: node->children) {
-      if(child->action == action_choice)
-        possible_children.emplace_back(child);
-    }
-
-    std::uniform_int_distribution<> child_dis(0, possible_children.size() - 1);
-    return this->SelectBestLeafNode(possible_children.at(child_dis(gen)));
-  }
-
   return this->SelectBestLeafNode(this->GetBestUctChild(node));
 }
 
@@ -125,7 +111,7 @@ Node *Mcts::Expand(Node *node) {
     int action = node->unexpanded_actions.GetRandomItemAndRemove();
     
     Node *new_node = new Node;
-    InitNewNode(new_node, node, action, node->board, false);
+    InitNewNode(new_node, node, action, node->board, false, 1);
     new_node->board.MakeAction(action);
     this->tree_size++;
 
@@ -161,7 +147,7 @@ Node *Mcts::Expand(Node *node) {
   int tile = (item & 0b0110000) >> 4;
 
   Node *new_node = new Node;
-  InitNewNode(new_node, node, tile, node->board, true);
+  InitNewNode(new_node, node, tile, node->board, true, tile == 1 ? 0.9 : 0.1);
   new_node->board.SetAt(i, tile);
   node->children.emplace_back(new_node);
   this->tree_size++;
@@ -208,12 +194,11 @@ double Mcts::Simulate(const Node *node) const {
 }
 
 void Mcts::Backpropagate(Node *node, double eval) const {
-  // TODO: Decide if using weights is better
   Node *curr_n = node;
 
   while (curr_n != nullptr) {
     curr_n->visit_count++;
-    curr_n->score += eval;
+    curr_n->score += eval * curr_n->weight;
     curr_n = curr_n->parent;
   }
 }
@@ -242,7 +227,7 @@ void Mcts::FindNodeByBoard(const Board &board) {
   if(!this->FindNodeWithCleanup(board, this->tree_root, 0)) {
     this->CleanupTreeFromRoot(this->tree_root);
     this->tree_root = new Node;
-    InitNewNode(this->tree_root, nullptr, UINT8_MAX, board, true);
+    InitNewNode(this->tree_root, nullptr, UINT8_MAX, board, true, 1);
     this->tree_size = 1;
   }
 }
