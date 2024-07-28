@@ -1,17 +1,17 @@
 function renderTile(i_idx, j_idx, tile) {
   const tile_cols = [
-    '#eee4da', // color for tile 2
-    '#ede0c8', // color for tile 4
-    '#f2b179', // color for tile 8
-    '#f59563', // color for tile 16
-    '#f67c5f', // color for tile 32
-    '#f65e3b', // color for tile 64
-    '#edcf72', // color for tile 128
-    '#edcc61', // color for tile 256
-    '#edc850', // color for tile 512
-    '#edc53f', // color for tile 1024
-    '#edc22e', // color for tile 2048
-    '#3c3a32', // color for tile 4096
+    "#EEE4DA",
+    "#EDE0C8",
+    "#F2B179",
+    "#F59563",
+    "#F67C5F",
+    "#F65E3B",
+    "#EDCF72",
+    "#EDCC61",
+    "#EDC850",
+    "#EDC53F",
+    "#EDC22E",
+    "#3C3A32"
   ];
 
   const tiles = document.querySelectorAll("#board > tbody > tr > td");
