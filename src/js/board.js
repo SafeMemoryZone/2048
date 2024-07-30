@@ -1,41 +1,5 @@
 function renderTile(i_idx, j_idx, tile) {
-  const tile_cols = [
-    "#EEE4DA",
-    "#EDE0C8",
-    "#F2B179",
-    "#F59563",
-    "#F67C5F",
-    "#F65E3B",
-    "#EDCF72",
-    "#EDCC61",
-    "#EDC850",
-    "#EDC53F",
-    "#EDC22E",
-    "#3C3A32"
-  ];
-
-  const tiles = document.querySelectorAll("#board > tbody > tr > td");
-  const target = tiles[i_idx * 4 + j_idx];
-  target.innerHTML = '';
-  target.style.position = 'relative';
-  target.style.borderRadius = '15px';
-
-  const p = document.createElement("p");
-  p.style.margin = 0;
-  p.style.textAlign = "center";
-  p.style.lineHeight = '100px';
-  p.style.width = '100%';
-  p.style.height = '100%';
-  p.style.display = 'flex';
-  p.style.alignItems = 'center';
-  p.style.justifyContent = 'center';
-  p.textContent = tile;
-
-  target.appendChild(p);
-
-  const col_idx = Math.min(Math.log2(tile) - 1, tile_cols.length - 1);
-  target.style.backgroundColor = tile_cols[col_idx];
-  p.style.backgroundColor = 'transparent';
+  // TODO: add tile rendering
 }
 
 class GameBoard {
@@ -70,7 +34,7 @@ class GameBoard {
     const pos_dist = this.#generateDist(0, empty_tiles.length - 1);
     const pos = empty_tiles[pos_dist()];
     this.board[pos[0]][pos[1]] = tile;
-    renderTile(pos[0], pos[1], tile);
+    renderTile(pos[0], pos[1], tile, this.board);
   }
 
   isTerminalState() {
