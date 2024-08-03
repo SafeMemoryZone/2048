@@ -21,4 +21,4 @@ endif()
 
 add_compile_options(-O${BUILD_OPTIMIZATION_LEVEL})
 
-add_subdirectory(src/cxx)
+add_subdirectory(src)
