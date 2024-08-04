@@ -30,7 +30,6 @@ bool Board::IsTerminalState() const {
 }
 
 void Board::MakeAction(int action) {
-  // TODO: Cleanup, optimize and make code more modular
   switch(action) {
     case DIRECTION_UP:
       for(int col_idx = 0; col_idx < 4; col_idx++) {

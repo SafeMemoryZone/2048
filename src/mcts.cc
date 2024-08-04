@@ -31,9 +31,6 @@ Mcts::~Mcts() {
 }
 
 int Mcts::CalculateBestAction(int iter_count) {
-  std::random_device rd;
-  std::mt19937 gen(rd());
-
   for (uint32_t i = 0; i < iter_count; i++) {
     Node *leaf = this->SelectBestLeafNode(this->tree_root);
 
