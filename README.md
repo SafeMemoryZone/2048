@@ -2,7 +2,7 @@
 
 This project is under development and not yet finished.
 
-The goal of this project is to develop an AI that is pretty strong at playing the game [2048](https://en.wikipedia.org/wiki/2048_(video_game)). The AI is implemented based on the principles of [AlphaZero by Google DeepMind](https://deepmind.com/blog/article/alphazero-shedding-new-light-on-chess-shogi-and-go).
+The goal of this project is to develop an AI that is pretty strong at playing the game [2048](https://en.wikipedia.org/wiki/2048_(video_game)). The AI is implemented based on the principles of [Monte Carlo Tree Search (MCTS)](https://en.wikipedia.org/wiki/Monte_Carlo_tree_search).
 
 ## Quickstart
 
